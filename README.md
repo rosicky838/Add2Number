@@ -21,16 +21,16 @@
 ## Cách clone
 Windows:
 ```bash
-git clone https://github.com/rosicky838/Add2NumWeb.git D:\Projects\github.com\rosicky838\Add2NumWeb
+git clone https://github.com/rosicky838/Add2Number.git D:\Projects\github.com\rosicky838\Add2Number
 ```
 Mac/Linux:
 ```bash
-git clone https://github.com/rosicky838/Add2NumWeb.git ~/Projects/github.com/rosicky838/Add2NumWeb
+git clone https://github.com/rosicky838/Add2Number.git ~/Projects/github.com/rosicky838/Add2Number
 ```
 
 ## Cách chạy
 ```bash
-cd Add2NumWeb
+cd Add2Number
 mvn spring-boot:run
 ```
 Sau đó mở trình duyệt:

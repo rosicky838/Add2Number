@@ -1,57 +1,61 @@
-Add2Num Web
-Dự án Java + Spring Boot để cộng hai số lớn bằng chuỗi, không bị giới hạn bởi kiểu dữ liệu số nguyên thông thường.
+# Add2NumWeb
 
-Mô tả
-Logic cộng số lớn nằm trong module Add2Num
-Ứng dụng web cho phép nhập 2 số và hiển thị kết quả trực tiếp
-Hỗ trợ số có độ dài lớn, ví dụ: 99999999999999999999 + 1
-Cấu trúc project
-Add2Number/
-├── Add2Num/
-│   ├── src/
-│   │   ├── main/java/com/add2num/MyBigNumber.java
-│   │   └── test/java/com/add2num/MyBigNumberTest.java
-├── src/
-│   ├── main/java/com/add2numweb/
-│   │   ├── Add2NumController.java
-│   │   └── Add2NumWebApplication.java
-│   ├── main/resources/
-│   │   ├── application.properties
-│   │   └── templates/index.html
-│   └── test/java/com/add2numweb/
-│       └── Add2NumWebApplicationTests.java
-├── libs/
-│   └── Add2Num-0.0.1.jar
-├── pom.xml
-├── mvnw
-├── mvnw.cmd
-├── README.md
-└── target/
+Ứng dụng Web cộng 2 số lớn biểu diễn dưới dạng chuỗi, không bị giới hạn bởi kiểu dữ liệu số nguyên thông thường.
 
-Công nghệ sử dụng
-Java 17
-Spring Boot 3.2.0
-Thymeleaf
-Maven
-JUnit 5
-Chạy ứng dụng
-Ở thư mục gốc của project:
-./mvnw spring-boot:run
+## Mô tả
+- Logic cộng số lớn được tái sử dụng từ thư viện `Add2Num` (Task 1) dưới dạng file `.jar`
+- Ứng dụng Web cho phép nhập 2 số và hiển thị kết quả cùng tiến trình từng bước
+- Hỗ trợ số có độ dài lớn, ví dụ: `99999999999999999999 + 1`
 
-Sau đó mở:
+## Công nghệ sử dụng
+- Java 17
+- Spring Boot 3.2.0
+- Thymeleaf
+- Bootstrap 5
+- Maven
+
+## Yêu cầu môi trường
+- Java 17+
+- Maven 3.6+
+
+## Cách clone
+Windows:
+```bash
+git clone https://github.com/rosicky838/Add2NumWeb.git D:\Projects\github.com\rosicky838\Add2NumWeb
+```
+Mac/Linux:
+```bash
+git clone https://github.com/rosicky838/Add2NumWeb.git ~/Projects/github.com/rosicky838/Add2NumWeb
+```
+
+## Cách chạy
+```bash
+cd Add2NumWeb
+mvn spring-boot:run
+```
+Sau đó mở trình duyệt:
+```
 http://localhost:8080
+```
 
-Chạy test
-./mvnw test
+## Cách chạy Test
+```bash
+mvn test
+```
 
-huật toán
-Phương thức chính sum(String num1, String num2) thực hiện phép cộng theo cách tương tự học sinh tiểu học:
+## Thuật toán
+Phương thức `sum(String num1, String num2)` thực hiện phép cộng theo cách học sinh Tiểu học:
+1. Duyệt từ phải sang trái
+2. Cộng từng chữ số + số nhớ (carry)
+3. Ghi kết quả từng bước
+4. Ghép lại thành chuỗi kết quả
 
-cộng từ phải sang trái
-tính số nhớ (carry)
-ghép kết quả lại thành chuỗi
-Ghi chú
-Project hiện tại bao gồm:
 
-logic xử lý cộng số lớn ở module Add2Num
-giao diện web ở project gốc để người dùng nhập liệu và xem kết quả
+## Test Cases
+| Số 1                  | Số 2 | Kết quả               |
+|-----------------------|------|-----------------------|
+| 1234                  | 897  | 2131                  |
+| 999                   | 1    | 1000                  |
+| 0                     | 0    | 0                     |
+| 9999                  | 9999 | 19998                 |
+| 99999999999999999999  | 1    | 100000000000000000000 |

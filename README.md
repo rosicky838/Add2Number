@@ -1,4 +1,4 @@
-# Add2NumWeb
+# Add2Number
 
 Ứng dụng Web cộng 2 số lớn biểu diễn dưới dạng chuỗi, không bị giới hạn bởi kiểu dữ liệu số nguyên thông thường.
 

@@ -8,7 +8,12 @@ Dự án này cài đặt hàm cộng hai số lớn được biểu diễn dư�
 - **Tên dự án:** Add2Num
 - **Tác giả:** Thach.Le
 - **Phiên bản:** `0.0.1`
-- **Môi trường yêu cầu:** Java JDK 11+, Apache Maven 3.6+
+- **Môi trường & Công nghệ:**
+  - Java JDK 11 / 17
+  - Apache Maven 3.6+
+  - JUnit 5 (Unit Testing Task 1)
+  - Spring Boot 3.x, Thymeleaf, Bootstrap 5 (Task 2 Web App)
+
 
 ---
 

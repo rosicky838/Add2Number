@@ -5,7 +5,7 @@
 ## Mô tả
 - Logic cộng số lớn được tái sử dụng từ thư viện `Add2Num` (Task 1) dưới dạng file `.jar`
 - Ứng dụng Web cho phép nhập 2 số và hiển thị kết quả cùng tiến trình từng bước
-- Hỗ trợ số có độ dài lớn, ví dụ: `99999999999999999999 + 1`
+- Hỗ trợ số có độ dài lớn
 
 ## Công nghệ sử dụng
 - Java 17

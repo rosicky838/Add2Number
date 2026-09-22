@@ -2,52 +2,204 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Add2Num</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Add2Number - Cộng 2 Số Lớn</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+        .main-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            background: #ffffff;
+        }
+        .step-container {
+            max-height: 380px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+        .step-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .step-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+        .quick-btn {
+            font-size: 0.82rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .result-box {
+            word-break: break-all;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 12px;
+            color: #065f46;
+        }
+    </style>
 </head>
-<body class="bg-light py-5">
-<div class="container" style="max-width:600px">
+<body class="py-5">
+<div class="container" style="max-width: 680px;">
 
-    <h2 class="text-center mb-4">🧮 Cộng 2 Số Lớn</h2>
+    <!-- Tiêu đề -->
+    <div class="text-center mb-4">
+        <h2 class="fw-bold text-dark mb-1">🧮 Cộng 2 Số Lớn</h2>
+        <p class="text-muted small">Thuật toán cộng từng chữ số kiểu tiểu học, hỗ trợ số lớn vượt giới hạn Integer/Long</p>
+    </div>
 
-    <!-- Form -->
-    <div class="card p-4 mb-4">
-        <form method="post" th:action="@{/calculate}">
-            <div class="row g-2 align-items-end">
-                <div class="col">
-                    <label class="form-label">Số 1</label>
-                    <input name="num1" class="form-control" th:value="${num1}" placeholder="1234" required/>
+    <!-- Khối Form nhập liệu -->
+    <div class="card main-card p-4 mb-4">
+        <form id="calcForm" method="post" th:action="@{/calculate}">
+            <div class="row g-3 align-items-center">
+                <div class="col-12 col-md-5">
+                    <label class="form-label fw-semibold text-secondary small">Số thứ nhất (Số A)</label>
+                    <input id="num1" name="num1" class="form-control form-control-lg font-monospace fs-6" 
+                           th:value="${num1}" placeholder="Ví dụ: 1234" required autocomplete="off" autofocus/>
                 </div>
-                <div class="col-auto pb-2"><h4>+</h4></div>
-                <div class="col">
-                    <label class="form-label">Số 2</label>
-                    <input name="num2" class="form-control" th:value="${num2}" placeholder="897" required/>
+                <div class="col-12 col-md-2 text-center text-secondary">
+                    <span class="fs-4 fw-bold">+</span>
+                </div>
+                <div class="col-12 col-md-5">
+                    <label class="form-label fw-semibold text-secondary small">Số thứ hai (Số B)</label>
+                    <input id="num2" name="num2" class="form-control form-control-lg font-monospace fs-6" 
+                           th:value="${num2}" placeholder="Ví dụ: 897" required autocomplete="off"/>
                 </div>
             </div>
-            <button class="btn btn-primary w-100 mt-3">Tính</button>
+
+            <!-- Nút ví dụ nhanh -->
+            <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
+                <span class="text-muted small me-1">Thử nhanh:</span>
+                <button type="button" class="btn btn-outline-secondary quick-btn" onclick="fillExample('1234', '897')">1234 + 897</button>
+                <button type="button" class="btn btn-outline-secondary quick-btn" onclick="fillExample('999', '1')">999 + 1</button>
+                <button type="button" class="btn btn-outline-secondary quick-btn" onclick="fillExample('99999999999999999999', '1')">10^20 - 1 + 1</button>
+                <button type="button" class="btn btn-outline-secondary quick-btn" onclick="fillExample('0', '0')">0 + 0</button>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary btn-lg flex-grow-1 fw-bold shadow-sm">
+                    <i class="bi bi-calculator me-1"></i> Tính Kết Quả
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-lg" onclick="clearForm()" title="Xóa dữ liệu">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+            </div>
         </form>
     </div>
 
-    <!-- Lỗi -->
-    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+    <!-- Thông báo lỗi -->
+    <div th:if="${error}" class="alert alert-danger d-flex align-items-center shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+        <div th:text="${error}"></div>
+    </div>
 
-    <!-- Kết quả -->
-    <div th:if="${result}">
-        <div class="alert alert-success text-center fs-5">
-            <span th:text="${num1}"></span> + <span th:text="${num2}"></span>
-            = <strong th:text="${result}"></strong>
+    <!-- Kết quả hiển thị -->
+    <div th:if="${result}" class="card main-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0 text-success">
+                <i class="bi bi-check-circle-fill me-1"></i> Kết Quả Tính Toán
+            </h5>
+            <button class="btn btn-sm btn-outline-success" onclick="copyResult()" id="copyBtn">
+                <i class="bi bi-clipboard me-1"></i> Sao chép kết quả
+            </button>
         </div>
 
-        <div class="card p-3">
-            <h6>📋 Tiến trình:</h6>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item font-monospace small"
-                    th:each="s : ${steps}" th:text="${s}">
-                </li>
-            </ul>
+        <div class="result-box p-3 mb-4">
+            <div class="small text-muted font-monospace text-truncate mb-1">
+                <span th:text="${num1}"></span> + <span th:text="${num2}"></span> =
+            </div>
+            <div id="resultText" class="fs-4 fw-bold font-monospace" th:text="${result}"></div>
+            <div class="text-muted small mt-1">Độ dài: <span th:text="${result.length()}"></span> chữ số</div>
+        </div>
+
+        <!-- Chi tiết tiến trình -->
+        <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-secondary m-0">
+                    <i class="bi bi-list-ol me-1"></i> Tiến trình chi tiết (<span th:text="${steps.size()}"></span> bước):
+                </h6>
+                <span th:if="${steps.size() > 40}" class="badge bg-info text-dark small">
+                    Đang hiển thị 40 bước tiêu biểu
+                </span>
+            </div>
+            
+            <div class="step-container p-2">
+                <ul id="stepList" class="list-group list-group-flush bg-transparent">
+                    <li th:each="s, stat : ${steps}"
+                        th:classappend="${steps.size() > 40 and stat.index >= 30 and stat.index < steps.size() - 10} ? 'd-none hidden-step' : ''"
+                        class="list-group-item bg-transparent font-monospace small py-2 border-bottom"
+                        th:text="${s}">
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Nút mở rộng/thu gọn cho các phép tính dài -->
+            <div th:if="${steps.size() > 40}" class="text-center mt-2">
+                <button id="toggleStepsBtn" type="button" class="btn btn-sm btn-outline-primary" onclick="toggleAllSteps()">
+                    <i class="bi bi-arrows-expand me-1"></i> Hiển thị toàn bộ <span th:text="${steps.size()}"></span> bước
+                </button>
+            </div>
         </div>
     </div>
 
 </div>
+
+<script th:inline="javascript">
+    function toggleAllSteps() {
+        const hiddenSteps = document.querySelectorAll('.hidden-step');
+        if (!hiddenSteps.length) return;
+        const btn = document.getElementById('toggleStepsBtn');
+        const isHidden = hiddenSteps[0].classList.contains('d-none');
+        
+        hiddenSteps.forEach(el => {
+            if (isHidden) {
+                el.classList.remove('d-none');
+            } else {
+                el.classList.add('d-none');
+            }
+        });
+
+        const totalSteps = /*[[${steps != null ? steps.size() : 0}]]*/ 0;
+        if (isHidden) {
+            btn.innerHTML = '<i class="bi bi-arrows-collapse me-1"></i> Thu gọn danh sách bước';
+        } else {
+            btn.innerHTML = '<i class="bi bi-arrows-expand me-1"></i> Hiển thị toàn bộ ' + totalSteps + ' bước';
+        }
+    }
+    function fillExample(n1, n2) {
+        document.getElementById('num1').value = n1;
+        document.getElementById('num2').value = n2;
+        document.getElementById('calcForm').submit();
+    }
+
+    function clearForm() {
+        document.getElementById('num1').value = '';
+        document.getElementById('num2').value = '';
+        document.getElementById('num1').focus();
+    }
+
+    function copyResult() {
+        const resultText = document.getElementById('resultText').innerText;
+        navigator.clipboard.writeText(resultText).then(() => {
+            const copyBtn = document.getElementById('copyBtn');
+            const originalHTML = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Đã chép!';
+            copyBtn.classList.remove('btn-outline-success');
+            copyBtn.classList.add('btn-success');
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHTML;
+                copyBtn.classList.remove('btn-success');
+                copyBtn.classList.add('btn-outline-success');
+            }, 2000);
+        });
+    }
+</script>
 </body>
 </html>

@@ -1,21 +1,25 @@
 package com.add2numweb;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.add2numweb.dto.CalculationResult;
+import com.add2numweb.service.BigNumberService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import main.java.com.add2num.MyBigNumber;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 public class Add2NumController {
 
-    private static final Logger log = LoggerFactory.getLogger(Add2NumController.class);
-    private final MyBigNumber myBigNumber = new MyBigNumber(); // ← dùng Task 1
+    private final BigNumberService bigNumberService;
+
+    public Add2NumController(BigNumberService bigNumberService) {
+        this.bigNumberService = bigNumberService;
+    }
 
     @GetMapping("/")
     public String index() {
@@ -23,36 +27,40 @@ public class Add2NumController {
     }
 
     @PostMapping("/calculate")
-    public String calculate(@RequestParam String num1,
-                            @RequestParam String num2,
+    public String calculate(@RequestParam(required = false) String num1,
+                            @RequestParam(required = false) String num2,
                             Model model) {
-        if (!num1.matches("\\d+") || !num2.matches("\\d+")) {
-            model.addAttribute("error", "Vui lòng nhập số hợp lệ!");
-            return "index";
-        }
-        
-        String result = myBigNumber.sum(num1, num2); // ← gọi hàm Task 1
-        
-        // Tính tiến trình riêng
-        List<String> steps = new ArrayList<>();
-        int i = num1.length() - 1, j = num2.length() - 1;
-        int carry = 0, step = 1;
+        // Giữ lại input đã nhập ngay cả khi có lỗi xảy ra
+        model.addAttribute("num1", num1 != null ? num1.trim() : "");
+        model.addAttribute("num2", num2 != null ? num2.trim() : "");
 
-        while (i >= 0 || j >= 0 || carry != 0) {
-            int d1 = i >= 0 ? num1.charAt(i--) - '0' : 0;
-            int d2 = j >= 0 ? num2.charAt(j--) - '0' : 0;
-            int total = d1 + d2 + carry;
-            carry = total / 10;
-            steps.add(String.format("Bước %d: %d + %d + nhớ(%d) = %d → ghi %d, nhớ %d",
-                    step++, d1, d2, carry, total, total % 10, carry));
+        try {
+            CalculationResult result = bigNumberService.calculate(num1, num2);
+            model.addAttribute("result", result.getResult());
+            model.addAttribute("steps", result.getSteps());
+        } catch (IllegalArgumentException ex) {
+            model.addAttribute("error", ex.getMessage());
         }
-        
-        log.info("{} + {} = {}", num1, num2, result);
 
-        model.addAttribute("num1", num1);
-        model.addAttribute("num2", num2);
-        model.addAttribute("result", result);
-        model.addAttribute("steps", steps);
         return "index";
+    }
+
+    @PostMapping(value = "/api/calculate", produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> calculateApi(@RequestParam(required = false) String num1,
+                                           @RequestParam(required = false) String num2) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            CalculationResult result = bigNumberService.calculate(num1, num2);
+            response.put("success", true);
+            response.put("num1", result.getNum1());
+            response.put("num2", result.getNum2());
+            response.put("result", result.getResult());
+            response.put("steps", result.getSteps());
+        } catch (IllegalArgumentException ex) {
+            response.put("success", false);
+            response.put("error", ex.getMessage());
+        }
+        return response;
     }
 }

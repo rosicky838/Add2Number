@@ -29,9 +29,14 @@ git clone https://github.com/rosicky838/Add2Number.git ~/Projects/github.com/ros
 ```
 
 ## Cách chạy
+1. Sử dụng Spring Boot Maven plugin:
 ```bash
-cd Add2Number
 mvn spring-boot:run
+```
+2. Hoặc đóng gói thành Fat JAR và chạy độc lập:
+```bash
+mvn clean package
+java -jar target/Add2NumWeb-0.0.1.jar
 ```
 Sau đó mở trình duyệt:
 ```

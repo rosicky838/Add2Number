@@ -177,3 +177,10 @@ Các commit đã chứa các chỉnh sửa coverage:
 
 - `e24c58f` — bổ sung coverage cho exception, entity và các nhánh ID collision.
 - `77d15cf` — bổ sung coverage cho deterministic random helper.
+
+### Cập nhật lần chạy 2026-09-23
+
+- Thay các `assertThatThrownBy` lambda trong `WorkOrderServiceTest` bằng helper
+  `captureException`, để Eclipse có thể thực thi cả nhánh return bình thường và
+  nhánh ném exception của mã test.
+- Kết quả: 45 tests pass, không có failure/error.

@@ -138,3 +138,42 @@ Kết quả đạt được: **100.0% Code Coverage tuyệt đối trên toàn b
 ---
 
 *Báo cáo được tạo tự động bởi Antigravity IDE Assistant.*
+
+---
+
+## 4. Xác nhận lần chạy hiện tại
+
+Ngày xác nhận: **2026-09-23**
+
+Lệnh Maven đã chạy:
+
+```powershell
+.\mvnw.cmd clean org.jacoco:jacoco-maven-plugin:0.8.12:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.12:report
+```
+
+Kết quả:
+
+```text
+Tests run: 45
+Failures: 0
+Errors: 0
+Skipped: 0
+BUILD SUCCESS
+```
+
+Báo cáo JaCoCo chính thức trong thư mục `jacoco/` đo các class production
+trong `src/main/java`. Các class Work Order, exception, config và application
+hiện đạt 100% instruction/line coverage. Coverage của `BigNumberService`
+legacy còn 3 branch phòng thủ chưa được regression test; đây là branch coverage,
+không phải instruction/line coverage.
+
+Ảnh Eclipse đang hiển thị `src/test/java/.../WorkOrderServiceTest.java`.
+Đó là coverage của chính mã test, không phải production coverage. Không nên
+thêm assertion giả hoặc code không cần thiết chỉ để biến lambda assertion của
+JUnit/AssertJ thành màu xanh. Test fixture `SequenceRandom` đã được gọi
+explicit bằng test `sequenceRandomReturnsConfiguredValue()`.
+
+Các commit đã chứa các chỉnh sửa coverage:
+
+- `e24c58f` — bổ sung coverage cho exception, entity và các nhánh ID collision.
+- `77d15cf` — bổ sung coverage cho deterministic random helper.

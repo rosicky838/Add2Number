@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WorkOrderService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Add2NumWeb</a> &gt; <a href="index.source.html" class="el_package">com.add2numweb.workorder</a> &gt; <span class="el_source">WorkOrderService.java</span></div><h1>WorkOrderService.java</h1><pre class="source lang-java linenums">package com.add2numweb.workorder;
+
+import com.add2numweb.exception.WorkOrderIdGenerationException;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.Random;
+import java.util.Locale;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class WorkOrderService {
+
+    private static final int MAX_ID_ATTEMPTS = 3;
+    private static final int ID_BOUND = 100000;
+
+    private final WorkOrderRepository workOrderRepository;
+    private final Clock clock;
+    private final Random random;
+
+    @Autowired
+    public WorkOrderService(WorkOrderRepository workOrderRepository) {
+<span class="fc" id="L24">        this(workOrderRepository, Clock.systemUTC(), new Random());</span>
+<span class="fc" id="L25">    }</span>
+
+<span class="fc" id="L27">    WorkOrderService(WorkOrderRepository workOrderRepository, Clock clock, Random random) {</span>
+<span class="fc" id="L28">        this.workOrderRepository = workOrderRepository;</span>
+<span class="fc" id="L29">        this.clock = clock;</span>
+<span class="fc" id="L30">        this.random = random;</span>
+<span class="fc" id="L31">    }</span>
+
+    public WorkOrderResponse create(CreateWorkOrderRequest request) {
+<span class="fc" id="L34">        String equipmentId = request.equipmentId().trim();</span>
+<span class="fc" id="L35">        Priority priority = Priority.valueOf(request.priority());</span>
+<span class="fc" id="L36">        Instant createdAt = Instant.now(clock);</span>
+
+<span class="fc" id="L38">        for (int attempt = 0; ; attempt++) {</span>
+<span class="fc" id="L39">            WorkOrder workOrder = new WorkOrder(</span>
+<span class="fc" id="L40">                    generateId(),</span>
+                    equipmentId,
+                    priority,
+                    WorkOrderStatus.Open,
+                    createdAt);
+            try {
+<span class="fc" id="L46">                WorkOrder saved = workOrderRepository.save(workOrder);</span>
+<span class="fc" id="L47">                return toResponse(saved);</span>
+<span class="fc" id="L48">            } catch (DataIntegrityViolationException exception) {</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">                if (!isIdCollision(exception)) {</span>
+<span class="fc" id="L50">                    throw exception;</span>
+                }
+<span class="fc bfc" id="L52" title="All 2 branches covered.">                if (attempt == MAX_ID_ATTEMPTS - 1) {</span>
+<span class="fc" id="L53">                    throw new WorkOrderIdGenerationException(</span>
+                            &quot;Unable to generate a unique work order ID after &quot;
+                                    + MAX_ID_ATTEMPTS + &quot; attempts.&quot;,
+                            exception);
+                }
+            }
+        }
+
+    }
+
+    private boolean isIdCollision(DataIntegrityViolationException exception) {
+<span class="fc" id="L64">        Throwable current = exception;</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        while (current != null) {</span>
+<span class="fc" id="L66">            String message = current.getMessage();</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">            if (message != null) {</span>
+<span class="fc" id="L68">                String normalized = message.toLowerCase(Locale.ROOT);</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">                boolean duplicateViolation = normalized.contains(&quot;duplicate key&quot;)</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">                        || normalized.contains(&quot;unique constraint&quot;)</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">                        || normalized.contains(&quot;primary key&quot;);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">                boolean workOrderId = normalized.contains(&quot;work_orders_pkey&quot;)</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">                        || normalized.contains(&quot;primary key&quot;)</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">                        || normalized.contains(&quot;work_orders.id&quot;)</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">                        || normalized.contains(&quot;work order id&quot;);</span>
+<span class="fc bfc" id="L76" title="All 4 branches covered.">                if (duplicateViolation &amp;&amp; workOrderId) {</span>
+<span class="fc" id="L77">                    return true;</span>
+                }
+            }
+<span class="fc" id="L80">            current = current.getCause();</span>
+<span class="fc" id="L81">        }</span>
+<span class="fc" id="L82">        return false;</span>
+    }
+
+    private String generateId() {
+<span class="fc" id="L86">        return &quot;WO-%05d&quot;.formatted(random.nextInt(ID_BOUND));</span>
+    }
+
+    private WorkOrderResponse toResponse(WorkOrder workOrder) {
+<span class="fc" id="L90">        return new WorkOrderResponse(</span>
+<span class="fc" id="L91">                workOrder.getId(),</span>
+<span class="fc" id="L92">                workOrder.getEquipmentId(),</span>
+<span class="fc" id="L93">                workOrder.getPriority(),</span>
+<span class="fc" id="L94">                workOrder.getStatus(),</span>
+<span class="fc" id="L95">                workOrder.getCreatedAt());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

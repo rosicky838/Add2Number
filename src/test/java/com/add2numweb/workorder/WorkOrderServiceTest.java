@@ -1,0 +1,104 @@
+package com.add2numweb.workorder;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.add2numweb.exception.WorkOrderIdGenerationException;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Random;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.dao.DataIntegrityViolationException;
+
+@ExtendWith(MockitoExtension.class)
+class WorkOrderServiceTest {
+
+    @Mock
+    private WorkOrderRepository workOrderRepository;
+
+    private WorkOrderService service;
+
+    @BeforeEach
+    void setUp() {
+        Clock clock = Clock.fixed(Instant.parse("2026-09-23T08:00:00Z"), ZoneOffset.UTC);
+        service = new WorkOrderService(workOrderRepository, clock, new SequenceRandom(10432));
+    }
+
+    @Test
+    void createsWorkOrderWithServerManagedValues() {
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkOrderResponse response = service.create(
+                new CreateWorkOrderRequest(" EQ-10001 ", "HIGH"));
+
+        assertThat(response.id()).isEqualTo("WO-10432");
+        assertThat(response.equipmentId()).isEqualTo("EQ-10001");
+        assertThat(response.priority()).isEqualTo(Priority.HIGH);
+        assertThat(response.status()).isEqualTo(WorkOrderStatus.Open);
+        assertThat(response.createdAt()).isEqualTo(Instant.parse("2026-09-23T08:00:00Z"));
+        verify(workOrderRepository).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void retriesUpToThreeTimesWhenIdCollides() {
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenThrow(new DataIntegrityViolationException(
+                        "duplicate key value violates unique constraint \"work_orders_pkey\""))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkOrderResponse response = service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(response.id()).isEqualTo("WO-10432");
+        verify(workOrderRepository, times(2)).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void throwsAfterThreeCollisionAttempts() {
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenThrow(new DataIntegrityViolationException(
+                        "duplicate key value violates unique constraint \"work_orders_pkey\""));
+
+        assertThatThrownBy(() -> service.create(
+                new CreateWorkOrderRequest("EQ-10001", "MEDIUM")))
+                .isInstanceOf(WorkOrderIdGenerationException.class)
+                .hasMessageContaining("3 attempts");
+        verify(workOrderRepository, times(3)).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void doesNotRetryNonIdDataIntegrityFailures() {
+        DataIntegrityViolationException exception =
+                new DataIntegrityViolationException("foreign key constraint violation");
+        when(workOrderRepository.save(any(WorkOrder.class))).thenThrow(exception);
+
+        assertThatThrownBy(() -> service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW")))
+                .isSameAs(exception);
+        verify(workOrderRepository).save(any(WorkOrder.class));
+    }
+
+    private static final class SequenceRandom extends Random {
+
+        private final int value;
+
+        private SequenceRandom(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public int nextInt(int bound) {
+            return value;
+        }
+    }
+}

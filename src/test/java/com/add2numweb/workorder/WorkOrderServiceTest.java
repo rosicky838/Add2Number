@@ -88,6 +88,90 @@ class WorkOrderServiceTest {
         verify(workOrderRepository).save(any(WorkOrder.class));
     }
 
+    @Test
+    void retriesWhenDuplicateIdIsReportedByNestedCause() {
+        DataIntegrityViolationException exception =
+                new DataIntegrityViolationException(
+                        "could not execute statement",
+                        new IllegalStateException(
+                                "duplicate key violates work_orders.id"));
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenThrow(exception)
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkOrderResponse response = service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(response.id()).isEqualTo("WO-10432");
+        verify(workOrderRepository, times(2)).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void retriesForUniqueConstraintOnWorkOrderId() {
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenThrow(new DataIntegrityViolationException(
+                        "unique constraint violation on work_orders.id"))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkOrderResponse response = service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(response.id()).isEqualTo("WO-10432");
+        verify(workOrderRepository, times(2)).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void retriesForPrimaryKeyViolation() {
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenThrow(new DataIntegrityViolationException(
+                        "primary key violation"))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkOrderResponse response = service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(response.id()).isEqualTo("WO-10432");
+        verify(workOrderRepository, times(2)).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void doesNotRetryUnrelatedDuplicateKey() {
+        DataIntegrityViolationException exception =
+                new DataIntegrityViolationException("duplicate key on equipment");
+        when(workOrderRepository.save(any(WorkOrder.class))).thenThrow(exception);
+
+        assertThatThrownBy(() -> service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW")))
+                .isSameAs(exception);
+        verify(workOrderRepository).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void retriesWhenMessageNamesWorkOrderIdExplicitly() {
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenThrow(new DataIntegrityViolationException(
+                        "duplicate key on work order id"))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkOrderResponse response = service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(response.id()).isEqualTo("WO-10432");
+        verify(workOrderRepository, times(2)).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void doesNotRetryWhenConstraintMessageIsMissing() {
+        DataIntegrityViolationException exception =
+                new DataIntegrityViolationException(null);
+        when(workOrderRepository.save(any(WorkOrder.class))).thenThrow(exception);
+
+        assertThatThrownBy(() -> service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW")))
+                .isSameAs(exception);
+        verify(workOrderRepository).save(any(WorkOrder.class));
+    }
+
     private static final class SequenceRandom extends Random {
 
         private final int value;

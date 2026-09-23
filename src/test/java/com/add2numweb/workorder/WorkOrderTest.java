@@ -36,4 +36,15 @@ class WorkOrderTest {
     void exposesOnlyOpenInitialStatus() {
         assertThat(WorkOrderStatus.values()).containsExactly(WorkOrderStatus.Open);
     }
+
+    @Test
+    void supportsJpaNoArgConstructor() {
+        WorkOrder workOrder = new WorkOrder();
+
+        assertThat(workOrder.getId()).isNull();
+        assertThat(workOrder.getEquipmentId()).isNull();
+        assertThat(workOrder.getPriority()).isNull();
+        assertThat(workOrder.getStatus()).isNull();
+        assertThat(workOrder.getCreatedAt()).isNull();
+    }
 }

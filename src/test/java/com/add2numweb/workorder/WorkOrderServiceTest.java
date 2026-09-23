@@ -172,6 +172,13 @@ class WorkOrderServiceTest {
         verify(workOrderRepository).save(any(WorkOrder.class));
     }
 
+    @Test
+    void sequenceRandomReturnsConfiguredValue() {
+        SequenceRandom random = new SequenceRandom(7);
+
+        assertThat(random.nextInt(100)).isEqualTo(7);
+    }
+
     private static final class SequenceRandom extends Random {
 
         private final int value;

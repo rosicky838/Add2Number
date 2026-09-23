@@ -186,6 +186,18 @@ class WorkOrderServiceTest {
         assertThat(random.nextInt(100)).isEqualTo(7);
     }
 
+    @Test
+    void captureExceptionReturnsNullWhenCreationSucceeds() {
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        RuntimeException exception = captureException(
+                new CreateWorkOrderRequest("EQ-10001", "HIGH"));
+
+        assertThat(exception).isNull();
+        verify(workOrderRepository).save(any(WorkOrder.class));
+    }
+
     private RuntimeException captureException(CreateWorkOrderRequest request) {
         try {
             service.create(request);

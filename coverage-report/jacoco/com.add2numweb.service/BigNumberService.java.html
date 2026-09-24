@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BigNumberService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Add2NumWeb</a> &gt; <a href="index.source.html" class="el_package">com.add2numweb.service</a> &gt; <span class="el_source">BigNumberService.java</span></div><h1>BigNumberService.java</h1><pre class="source lang-java linenums">package com.add2numweb.service;
+
+import com.add2numweb.dto.CalculationResult;
+import main.java.com.add2num.MyBigNumber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class BigNumberService {
+
+<span class="fc" id="L15">    private static final Logger log = LoggerFactory.getLogger(BigNumberService.class);</span>
+    private static final int MAX_LENGTH = 5000;
+<span class="fc" id="L17">    private static final java.util.regex.Pattern DIGIT_PATTERN = java.util.regex.Pattern.compile(&quot;^\\d+$&quot;);</span>
+
+    private final MyBigNumber myBigNumber;
+
+<span class="fc" id="L21">    public BigNumberService() {</span>
+<span class="fc" id="L22">        this.myBigNumber = new MyBigNumber();</span>
+<span class="fc" id="L23">    }</span>
+
+<span class="fc" id="L25">    public BigNumberService(MyBigNumber myBigNumber) {</span>
+<span class="fc" id="L26">        this.myBigNumber = myBigNumber;</span>
+<span class="fc" id="L27">    }</span>
+
+    public CalculationResult calculate(String num1, String num2) {
+<span class="pc bpc" id="L30" title="1 of 4 branches missed.">        if (num1 == null || num2 == null) {</span>
+<span class="fc" id="L31">            throw new IllegalArgumentException(&quot;Vui lòng nhập đầy đủ cả hai số!&quot;);</span>
+        }
+
+<span class="fc" id="L34">        String n1 = num1.trim();</span>
+<span class="fc" id="L35">        String n2 = num2.trim();</span>
+
+<span class="fc bfc" id="L37" title="All 4 branches covered.">        if (n1.isEmpty() || n2.isEmpty()) {</span>
+<span class="fc" id="L38">            throw new IllegalArgumentException(&quot;Các ô nhập không được để trống!&quot;);</span>
+        }
+
+<span class="pc bpc" id="L41" title="1 of 4 branches missed.">        if (!DIGIT_PATTERN.matcher(n1).matches() || !DIGIT_PATTERN.matcher(n2).matches()) {</span>
+<span class="fc" id="L42">            throw new IllegalArgumentException(&quot;Dữ liệu không hợp lệ! Vui lòng chỉ nhập các chữ số (0-9).&quot;);</span>
+        }
+
+<span class="fc bfc" id="L45" title="All 4 branches covered.">        if (n1.length() &gt; MAX_LENGTH || n2.length() &gt; MAX_LENGTH) {</span>
+<span class="fc" id="L46">            throw new IllegalArgumentException(&quot;Độ dài mỗi số không được vượt quá &quot; + MAX_LENGTH + &quot; chữ số.&quot;);</span>
+        }
+
+        // Tái sử dụng logic cộng chuỗi từ thư viện MyBigNumber
+<span class="fc" id="L50">        String result = myBigNumber.sum(n1, n2);</span>
+
+        // Sinh danh sách tiến trình từng bước với logic số nhớ chính xác (Pre-sized &amp; StringBuilder tối ưu hiệu năng)
+<span class="fc" id="L53">        int estimatedSteps = Math.max(n1.length(), n2.length()) + 1;</span>
+<span class="fc" id="L54">        List&lt;String&gt; steps = new ArrayList&lt;&gt;(estimatedSteps);</span>
+<span class="fc" id="L55">        int carry = 0;</span>
+
+<span class="fc" id="L57">        for (int i = n1.length() - 1, j = n2.length() - 1, step = 1;</span>
+<span class="pc bpc" id="L58" title="1 of 6 branches missed.">             i &gt;= 0 || j &gt;= 0 || carry != 0;</span>
+<span class="fc" id="L59">             step++) {</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">            int d1 = i &gt;= 0 ? n1.charAt(i--) - '0' : 0;</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">            int d2 = j &gt;= 0 ? n2.charAt(j--) - '0' : 0;</span>
+<span class="fc" id="L62">            int total = d1 + d2 + carry;</span>
+<span class="fc" id="L63">            int prevCarry = carry;</span>
+<span class="fc" id="L64">            carry = total / 10;</span>
+
+<span class="fc" id="L66">            StringBuilder sb = new StringBuilder(64);</span>
+<span class="fc" id="L67">            sb.append(&quot;Bước &quot;).append(step)</span>
+<span class="fc" id="L68">              .append(&quot;: &quot;).append(d1).append(&quot; + &quot;).append(d2)</span>
+<span class="fc" id="L69">              .append(&quot; + nhớ(&quot;).append(prevCarry).append(&quot;) = &quot;).append(total)</span>
+<span class="fc" id="L70">              .append(&quot; → ghi &quot;).append(total % 10).append(&quot;, nhớ &quot;).append(carry);</span>
+<span class="fc" id="L71">            steps.add(sb.toString());</span>
+        }
+
+<span class="fc" id="L74">        log.info(&quot;Phép tính: {} + {} = {} (Tổng số bước: {})&quot;, n1, n2, result, steps.size());</span>
+<span class="fc" id="L75">        return new CalculationResult(n1, n2, result, steps);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

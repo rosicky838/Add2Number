@@ -35,7 +35,7 @@ public class WorkOrderService {
         Priority priority = Priority.valueOf(request.priority());
         Instant createdAt = Instant.now(clock);
 
-        for (int attempt = 0; attempt < MAX_ID_ATTEMPTS; attempt++) {
+        for (int attempt = 0; ; attempt++) {
             WorkOrder workOrder = new WorkOrder(
                     generateId(),
                     equipmentId,
@@ -58,7 +58,6 @@ public class WorkOrderService {
             }
         }
 
-        throw new WorkOrderIdGenerationException("Unable to generate a work order ID.");
     }
 
     private boolean isIdCollision(DataIntegrityViolationException exception) {

@@ -1,7 +1,6 @@
 package com.add2numweb.workorder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -69,8 +68,10 @@ class WorkOrderServiceTest {
                 .thenThrow(new DataIntegrityViolationException(
                         "duplicate key value violates unique constraint \"work_orders_pkey\""));
 
-        assertThatThrownBy(() -> service.create(
-                new CreateWorkOrderRequest("EQ-10001", "MEDIUM")))
+        RuntimeException exception = captureException(
+                new CreateWorkOrderRequest("EQ-10001", "MEDIUM"));
+
+        assertThat(exception)
                 .isInstanceOf(WorkOrderIdGenerationException.class)
                 .hasMessageContaining("3 attempts");
         verify(workOrderRepository, times(3)).save(any(WorkOrder.class));
@@ -82,10 +83,128 @@ class WorkOrderServiceTest {
                 new DataIntegrityViolationException("foreign key constraint violation");
         when(workOrderRepository.save(any(WorkOrder.class))).thenThrow(exception);
 
-        assertThatThrownBy(() -> service.create(
-                new CreateWorkOrderRequest("EQ-10001", "LOW")))
+        RuntimeException thrown = captureException(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(thrown)
                 .isSameAs(exception);
         verify(workOrderRepository).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void retriesWhenDuplicateIdIsReportedByNestedCause() {
+        DataIntegrityViolationException exception =
+                new DataIntegrityViolationException(
+                        "could not execute statement",
+                        new IllegalStateException(
+                                "duplicate key violates work_orders.id"));
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenThrow(exception)
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkOrderResponse response = service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(response.id()).isEqualTo("WO-10432");
+        verify(workOrderRepository, times(2)).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void retriesForUniqueConstraintOnWorkOrderId() {
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenThrow(new DataIntegrityViolationException(
+                        "unique constraint violation on work_orders.id"))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkOrderResponse response = service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(response.id()).isEqualTo("WO-10432");
+        verify(workOrderRepository, times(2)).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void retriesForPrimaryKeyViolation() {
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenThrow(new DataIntegrityViolationException(
+                        "primary key violation"))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkOrderResponse response = service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(response.id()).isEqualTo("WO-10432");
+        verify(workOrderRepository, times(2)).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void doesNotRetryUnrelatedDuplicateKey() {
+        DataIntegrityViolationException exception =
+                new DataIntegrityViolationException("duplicate key on equipment");
+        when(workOrderRepository.save(any(WorkOrder.class))).thenThrow(exception);
+
+        RuntimeException thrown = captureException(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(thrown)
+                .isSameAs(exception);
+        verify(workOrderRepository).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void retriesWhenMessageNamesWorkOrderIdExplicitly() {
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenThrow(new DataIntegrityViolationException(
+                        "duplicate key on work order id"))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkOrderResponse response = service.create(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(response.id()).isEqualTo("WO-10432");
+        verify(workOrderRepository, times(2)).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void doesNotRetryWhenConstraintMessageIsMissing() {
+        DataIntegrityViolationException exception =
+                new DataIntegrityViolationException(null);
+        when(workOrderRepository.save(any(WorkOrder.class))).thenThrow(exception);
+
+        RuntimeException thrown = captureException(
+                new CreateWorkOrderRequest("EQ-10001", "LOW"));
+
+        assertThat(thrown)
+                .isSameAs(exception);
+        verify(workOrderRepository).save(any(WorkOrder.class));
+    }
+
+    @Test
+    void sequenceRandomReturnsConfiguredValue() {
+        SequenceRandom random = new SequenceRandom(7);
+
+        assertThat(random.nextInt(100)).isEqualTo(7);
+    }
+
+    @Test
+    void captureExceptionReturnsNullWhenCreationSucceeds() {
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        RuntimeException exception = captureException(
+                new CreateWorkOrderRequest("EQ-10001", "HIGH"));
+
+        assertThat(exception).isNull();
+        verify(workOrderRepository).save(any(WorkOrder.class));
+    }
+
+    private RuntimeException captureException(CreateWorkOrderRequest request) {
+        try {
+            service.create(request);
+            return null;
+        } catch (RuntimeException exception) {
+            return exception;
+        }
     }
 
     private static final class SequenceRandom extends Random {

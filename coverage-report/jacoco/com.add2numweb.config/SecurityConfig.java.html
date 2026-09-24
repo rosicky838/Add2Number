@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Add2NumWeb</a> &gt; <a href="index.source.html" class="el_package">com.add2numweb.config</a> &gt; <span class="el_source">SecurityConfig.java</span></div><h1>SecurityConfig.java</h1><pre class="source lang-java linenums">package com.add2numweb.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.core.GrantedAuthorityDefaults;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    private final String technicianUsername;
+    private final String technicianPassword;
+
+    public SecurityConfig(
+            @Value(&quot;${app.security.technician.username}&quot;) String technicianUsername,
+<span class="fc" id="L23">            @Value(&quot;${app.security.technician.password}&quot;) String technicianPassword) {</span>
+<span class="fc" id="L24">        this.technicianUsername = technicianUsername;</span>
+<span class="fc" id="L25">        this.technicianPassword = technicianPassword;</span>
+<span class="fc" id="L26">    }</span>
+
+    @Bean
+    GrantedAuthorityDefaults grantedAuthorityDefaults() {
+<span class="fc" id="L30">        return new GrantedAuthorityDefaults(&quot;&quot;);</span>
+    }
+
+    @Bean
+    UserDetailsService userDetailsService() {
+<span class="fc" id="L35">        return new InMemoryUserDetailsManager(</span>
+<span class="fc" id="L36">                User.withUsername(technicianUsername)</span>
+<span class="fc" id="L37">                        .password(&quot;{noop}&quot; + technicianPassword)</span>
+<span class="fc" id="L38">                        .roles(&quot;TECHNICIAN&quot;)</span>
+<span class="fc" id="L39">                        .build());</span>
+    }
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+<span class="fc" id="L44">        http</span>
+<span class="fc" id="L45">                .csrf(csrf -&gt; csrf.disable())</span>
+<span class="fc" id="L46">                .authorizeHttpRequests(authorize -&gt; authorize</span>
+<span class="fc" id="L47">                        .requestMatchers(&quot;/&quot;, &quot;/calculate&quot;, &quot;/api/calculate&quot;).permitAll()</span>
+<span class="fc" id="L48">                        .requestMatchers(&quot;/api/workorders&quot;).hasAuthority(&quot;ROLE_TECHNICIAN&quot;)</span>
+<span class="fc" id="L49">                        .anyRequest().authenticated())</span>
+<span class="fc" id="L50">                .httpBasic(httpBasic -&gt; {});</span>
+<span class="fc" id="L51">        return http.build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

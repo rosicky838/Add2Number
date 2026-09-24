@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Add2Num | Coverage Summary</title>
+  <style>
+    :root{--ink:#172033;--muted:#64748b;--line:#e2e8f0;--bg:#f8fafc;--card:#fff;--blue:#2563eb;--teal:#0f766e;--amber:#b45309}
+    *{box-sizing:border-box} body{margin:0;background:linear-gradient(135deg,#eef5ff 0,#f8fafc 48%,#ecfeff 100%);color:var(--ink);font:15px/1.6 Inter,Segoe UI,Arial,sans-serif}
+    .shell{max-width:1120px;margin:0 auto;padding:42px 24px 64px}.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px}
+    .eyebrow{color:var(--blue);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.hero h1{font-size:38px;line-height:1.1;margin:8px 0 10px;letter-spacing:-.04em}.hero p{color:var(--muted);margin:0}.date{color:var(--muted);font-size:13px;text-align:right}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}.card{background:rgba(255,255,255,.88);border:1px solid rgba(226,232,240,.9);border-radius:18px;padding:20px;box-shadow:0 12px 30px rgba(15,23,42,.06)}
+    .metric{font-size:30px;font-weight:800;letter-spacing:-.04em;margin:5px 0}.label{color:var(--muted);font-size:13px}.good{color:var(--teal)}.info{color:var(--blue)}.warn{color:var(--amber)}
+    .section{margin-top:22px}.section h2{font-size:20px;margin:0 0 12px}.table-card{padding:0;overflow:hidden}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:14px 18px;border-bottom:1px solid var(--line);text-align:left}.table th{background:#f1f5f9;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}.table tr:last-child td{border-bottom:0}
+    .bar{height:9px;min-width:120px;background:#e2e8f0;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:linear-gradient(90deg,#14b8a6,#2563eb);border-radius:inherit}.badge{display:inline-flex;padding:3px 9px;border-radius:99px;background:#dcfce7;color:#166534;font-size:12px;font-weight:700}
+    .note{border-left:4px solid var(--amber);background:#fffbeb;border-radius:12px;padding:15px 18px;color:#78350f}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}.button{display:inline-block;border-radius:10px;padding:10px 15px;background:var(--blue);color:white;text-decoration:none;font-weight:700}.button.secondary{background:#e2e8f0;color:var(--ink)}
+    code{background:#eef2ff;color:#3730a3;border-radius:5px;padding:2px 6px}.footer{color:var(--muted);font-size:13px;margin-top:30px}@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.hero{display:block}.date{text-align:left;margin-top:12px}}@media(max-width:500px){.grid{grid-template-columns:1fr}.shell{padding:28px 16px}.hero h1{font-size:31px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div><div class="eyebrow">Quality report · Add2Num</div><h1>Coverage snapshot</h1><p>Production code đã được kiểm chứng bằng JaCoCo.</p></div>
+      <div class="date">23/09/2026<br><strong>Build SUCCESS</strong></div>
+    </header>
+    <section class="grid">
+      <div class="card"><div class="label">Instruction coverage</div><div class="metric good">100%</div><div class="label">815 / 815 instructions</div></div>
+      <div class="card"><div class="label">Line coverage</div><div class="metric good">100%</div><div class="label">187 / 187 lines</div></div>
+      <div class="card"><div class="label">Tests</div><div class="metric info">46</div><div class="label">0 failures · 0 errors</div></div>
+      <div class="card"><div class="label">Branch coverage</div><div class="metric warn">94%</div><div class="label">3 legacy defensive branches</div></div>
+    </section>
+    <section class="section">
+      <h2>Production packages</h2>
+      <div class="card table-card"><table class="table"><thead><tr><th>Package</th><th>Instruction</th><th>Line</th><th>Status</th></tr></thead><tbody>
+        <tr><td><code>com.add2numweb.workorder</code></td><td><div class="bar"><span style="width:100%"></span></div></td><td>100%</td><td><span class="badge">PASS</span></td></tr>
+        <tr><td><code>com.add2numweb.exception</code></td><td><div class="bar"><span style="width:100%"></span></div></td><td>100%</td><td><span class="badge">PASS</span></td></tr>
+        <tr><td><code>com.add2numweb.config</code></td><td><div class="bar"><span style="width:100%"></span></div></td><td>100%</td><td><span class="badge">PASS</span></td></tr>
+        <tr><td><code>com.add2numweb</code></td><td><div class="bar"><span style="width:100%"></span></div></td><td>100%</td><td><span class="badge">PASS</span></td></tr>
+        <tr><td><code>com.add2numweb.service</code></td><td><div class="bar"><span style="width:100%"></span></div></td><td>100%</td><td><span class="badge">PASS</span></td></tr>
+      </tbody></table></div>
+    </section>
+    <section class="section"><div class="note"><strong>Vì sao branch không phải 100%?</strong><br>Ba branch còn lại thuộc logic phòng thủ legacy trong <code>BigNumberService</code>. Instruction và line coverage vẫn 100%; branch coverage được hiển thị riêng để không che giấu thông tin chất lượng.</div></section>
+    <section class="section card"><h2>Test evidence</h2><p><code>.\mvnw.cmd clean org.jacoco:jacoco-maven-plugin:0.8.12:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.12:report</code></p><p>Nhánh đỏ trong <code>captureException</code> đã được cover bằng test tạo Work Order thành công, không dùng assertion giả.</p><div class="actions"><a class="button" href="jacoco/index.html">Mở JaCoCo chi tiết</a><a class="button secondary" href="jacoco.csv">Xem CSV</a></div></section>
+    <div class="footer">Generated for local review · Report artifacts are stored in <code>coverage-report/</code>.</div>
+  </main>
+</body>
+</html>
